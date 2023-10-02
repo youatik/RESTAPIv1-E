@@ -265,6 +265,7 @@ components:
             type: object
             additionalProperties: true
           description: Liste des demandes traitées par le projet
+          default: []
 
     Projet:
       allOf:
@@ -296,9 +297,10 @@ components:
             type: object
             additionalProperties: true
           description: Liste des demandes liées à l'employé
+          default: []
         numero:
           type: string
-          description: Numéro de téléphone de l'employé
+          description: Numéro de l'employé
 
     Employe:
       allOf:
@@ -323,9 +325,13 @@ components:
         employe_id:
           type: string
           description: ID de l'employé associé (le cas échéant)
+          default: null  # Set default to null
+          nullable: true  # Allow null values
         projet_id:
           type: string
           description: ID du projet associé (le cas échéant)
+          default: null  # Set default to null
+          nullable: true  # Allow null values
 
     Demande:
       allOf:

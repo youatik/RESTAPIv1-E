@@ -2,18 +2,19 @@ from flask import jsonify
 from flask_pymongo import PyMongo
 from flask import Flask, jsonify, request
 from bson.objectid import ObjectId
+from flask import jsonify, request, abort
+
 
 import connexion
+from pymongo.errors import DuplicateKeyError
 
-connexion_app = connexion.App(__name__, specification_dir='./')  # Assuming api.yml is in the current directory
+connexion_app = connexion.App(__name__, specification_dir='./')
 
 app = connexion_app.app
 
 app.config["MONGO_URI"] = "mongodb://localhost:27017/A15"
 mongo = PyMongo(app)
 
-
-# Now, define your routes and functions
 
 @app.route('/v1/employes', methods=['GET'])
 def get_employes():
@@ -59,11 +60,30 @@ def get_projets():
         result.append(projet)
     return jsonify(result)
 
+
 @app.route('/v1/projets', methods=['POST'])
 def add_projet():
+    # Get the project details from the request body
     projet = request.json
-    result = mongo.db.projets.insert_one(projet)
-    return jsonify({"_id": str(result.inserted_id)})
+
+    # Extract all 'nom' values from the project
+    demandes_noms = projet.get('demandes_traitees', [])
+
+    # Check if all demandes exist in the database using the 'nom' values
+    existing_demandes_count = mongo.db.demandes.count_documents({"nom": {"$in": demandes_noms}})
+
+    if existing_demandes_count != len(demandes_noms):
+        return jsonify({"error": "One or more demandes do not exist in A15.demandes based on the provided 'nom' values"}), 400
+
+    # Insert the project into the database
+    try:
+        result = mongo.db.projets.insert_one(projet)
+        return jsonify({"_id": str(result.inserted_id)})
+    except DuplicateKeyError:
+        return jsonify({"error": "Projet with the same ID already exists"}), 400
+
+
+
 
 @app.route('/v1/projets/code/<code>', methods=['GET'])
 def get_single_projet_by_code(code):
@@ -75,9 +95,27 @@ def get_single_projet_by_code(code):
 
 @app.route('/v1/projets/code/<code>', methods=['PUT'])
 def update_projet_by_code(code):
+    # Get the updated project details from the request body
     projet_data = request.json
-    mongo.db.projets.update_one({'code': code}, {"$set": projet_data})
+
+    # Extract all 'nom' values from the updated project data
+    demandes_noms = projet_data.get('demandes_traitees', [])
+
+    # Check if all demandes exist in the database using the 'nom' values
+    existing_demandes_count = mongo.db.demandes.count_documents({"nom": {"$in": demandes_noms}})
+
+    if existing_demandes_count != len(demandes_noms):
+        return jsonify({"error": "One or more demandes do not exist in A15.demandes based on the provided 'nom' values"}), 400
+
+    # Update the project in the database
+    result = mongo.db.projets.update_one({'code': code}, {"$set": projet_data})
+
+    if result.matched_count == 0:
+        return jsonify({"error": "No project found with the provided code"}), 404
+
     return jsonify({"status": "Updated successfully"})
+
+
 
 @app.route('/v1/projets/code/<code>', methods=['DELETE'])
 def delete_projet_by_code(code):
