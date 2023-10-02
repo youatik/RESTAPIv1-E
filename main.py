@@ -25,11 +25,25 @@ def get_employes():
         result.append(employe)
     return jsonify(result)
 
+
 @app.route('/v1/employes', methods=['POST'])
 def add_employe():
     employe = request.json
+
+    # Get 'demandes' array from the employe
+    demandes = employe.get('demandes', [])
+
+    # Validate each 'demande' value
+    for demande_nom in demandes:
+        demande = mongo.db.demandes.find_one({'nom': demande_nom})
+        if not demande:
+            abort(400, f"No demande found with the name {demande_nom}")
+
+    # If all demandes are valid, insert the new employe
     result = mongo.db.employes.insert_one(employe)
+
     return jsonify({"_id": str(result.inserted_id)})
+
 
 @app.route('/v1/employes/numero/<numero>', methods=['GET'])
 def get_single_employe_by_numero(numero):
@@ -39,11 +53,26 @@ def get_single_employe_by_numero(numero):
     employe['_id'] = str(employe['_id'])
     return jsonify(employe)
 
+
 @app.route('/v1/employes/numero/<numero>', methods=['PUT'])
 def update_employe_by_numero(numero):
     employe_data = request.json
+
+    # Ensure 'demandes' key is present
+    if 'demandes' not in employe_data:
+        abort(400, "The 'demandes' key must be present, even if the array is empty.")
+
+    # Check each demande in 'demandes' array
+    for demande_nom in employe_data['demandes']:
+        demande_in_db = mongo.db.demandes.find_one({'nom': demande_nom})
+        if not demande_in_db:
+            abort(400, f"The demande with nom '{demande_nom}' does not exist.")
+
+    # Update employe data in the database
     mongo.db.employes.update_one({'numero': numero}, {"$set": employe_data})
+
     return jsonify({"status": "Updated successfully"})
+
 
 @app.route('/v1/employes/numero/<numero>', methods=['DELETE'])
 def delete_employe_by_numero(numero):
@@ -131,10 +160,29 @@ def get_demandes():
         result.append(demande)
     return jsonify(result)
 
+
 @app.route('/v1/demandes', methods=['POST'])
 def add_demande():
     demande = request.json
+
+    employe_id = demande.get("employe_id")
+    projet_id = demande.get("projet_id")
+
+    # Validate employe_id if it's not null
+    if employe_id:
+        employe = mongo.db.employes.find_one({"numero": employe_id})
+        if not employe:
+            abort(400, "Invalid employe_id")
+
+    # Validate projet_id if it's not null
+    if projet_id:
+        projet = mongo.db.projets.find_one({"code": projet_id})
+        if not projet:
+            abort(400, "Invalid projet_id")
+
+    # Insert the demande if validation is successful
     result = mongo.db.demandes.insert_one(demande)
+
     return jsonify({"_id": str(result.inserted_id)})
 
 @app.route('/v1/demandes/nom/<nom>', methods=['GET'])
@@ -145,10 +193,29 @@ def get_single_demande_by_nom(nom):
     demande['_id'] = str(demande['_id'])
     return jsonify(demande)
 
+
 @app.route('/v1/demandes/nom/<nom>', methods=['PUT'])
 def update_demande_by_nom(nom):
     demande_data = request.json
+
+    employe_id = demande_data.get("employe_id")
+    projet_id = demande_data.get("projet_id")
+
+    # Validate employe_id if it's included and not null
+    if employe_id is not None:
+        employe = mongo.db.employes.find_one({"numero": employe_id})
+        if not employe:
+            abort(400, "Invalid employe_id")
+
+    # Validate projet_id if it's included and not null
+    if projet_id is not None:
+        projet = mongo.db.projets.find_one({"code": projet_id})
+        if not projet:
+            abort(400, "Invalid projet_id")
+
+    # Update the demande if validation is successful
     mongo.db.demandes.update_one({'nom': nom}, {"$set": demande_data})
+
     return jsonify({"status": "Updated successfully"})
 
 @app.route('/v1/demandes/nom/<nom>', methods=['DELETE'])
