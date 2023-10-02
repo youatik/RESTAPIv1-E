@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projets</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    {% include 'partials/header.html' %}
+
+    <div class="container mt-4">
+        <h2>Projets</h2>
+
+        <table class="table mt-4">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Description</th>
+                    <th>Demandes Traitees</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td>{{ project.code }}</td>
+                    <td>{{ project.description }}</td>
+                    <td>
+                        {% for demande_nom in project.demandes_traitees %}
+                        <a href="/demande_info/{{ demande_nom }}" class="demande-link">{{ demande_nom }}</a>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
