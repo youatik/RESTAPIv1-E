@@ -1,0 +1,340 @@
+openapi: 3.0.2
+info:
+  title: A15 API v1
+  version: 1.0.0
+paths:
+  /v1/employes:
+    get:
+      operationId: main.get_employes
+      tags:
+        - Employes
+      responses:
+        '200':
+          description: List of all employes
+    post:
+      operationId: main.add_employe
+      tags:
+        - Employes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeCreate'
+      responses:
+        '201':
+          description: Employe added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+
+  /v1/employes/numero/{numero}:
+    get:
+      operationId: main.get_single_employe_by_numero
+      tags:
+        - Employes
+      parameters:
+        - in: path
+          name: numero
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Employe data
+        '404':
+          description: Employe not found
+    put:
+      operationId: main.update_employe_by_numero
+      tags:
+        - Employes
+      parameters:
+        - in: path
+          name: numero
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeCreate'
+      responses:
+        '200':
+          description: Updated employe data
+    delete:
+      operationId: main.delete_employe_by_numero
+      tags:
+        - Employes
+      parameters:
+        - in: path
+          name: numero
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Employe deleted successfully
+
+  /v1/projets:
+    get:
+      operationId: main.get_projets
+      tags:
+        - Projets
+      responses:
+        '200':
+          description: List of all projets
+    post:
+      operationId: main.add_projet
+      tags:
+        - Projets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjetCreate'
+      responses:
+        '201':
+          description: Projet added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+
+  /v1/projets/code/{code}:
+    get:
+      operationId: main.get_single_projet_by_code
+      tags:
+        - Projets
+      parameters:
+        - in: path
+          name: code
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Projet data
+        '404':
+          description: Projet not found
+    put:
+      operationId: main.update_projet_by_code
+      tags:
+        - Projets
+      parameters:
+        - in: path
+          name: code
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjetCreate'
+      responses:
+        '200':
+          description: Updated projet data
+    delete:
+      operationId: main.delete_projet_by_code
+      tags:
+        - Projets
+      parameters:
+        - in: path
+          name: code
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Projet deleted successfully
+
+  /v1/demandes:
+    get:
+      operationId: main.get_demandes
+      tags:
+        - Demandes
+      responses:
+        '200':
+          description: List of all demandes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Demande'
+    post:
+      operationId: main.add_demande
+      tags:
+        - Demandes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DemandeCreate'
+      responses:
+        '201':
+          description: Demande added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+
+  /v1/demandes/nom/{nom}:
+    get:
+      operationId: main.get_single_demande_by_nom
+      tags:
+        - Demandes
+      parameters:
+        - in: path
+          name: nom
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Demande data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Demande'
+        '404':
+          description: Demande not found
+    put:
+      operationId: main.update_demande_by_nom
+      tags:
+        - Demandes
+      parameters:
+        - in: path
+          name: nom
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DemandeCreate'
+      responses:
+        '200':
+          description: Updated successfully
+    delete:
+      operationId: main.delete_demande_by_nom
+      tags:
+        - Demandes
+      parameters:
+        - in: path
+          name: nom
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Deleted successfully
+
+
+components:
+  schemas:
+    ProjetCreate:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Code du projet
+        description:
+          type: string
+          description: Description du projet
+        demandes_traitees:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: Liste des demandes traitées par le projet
+
+    Projet:
+      allOf:
+        - $ref: '#/components/schemas/ProjetCreate'
+        - type: object
+          properties:
+            _id:
+              type: object
+              properties:
+                $oid:
+                  type: string
+
+    EmployeCreate:
+      type: object
+      properties:
+        prenom:
+          type: string
+          description: Prénom de l'employé
+        nom:
+          type: string
+          description: Nom de famille de l'employé
+        date_de_naissance:
+          type: string
+          format: date
+          description: Date de naissance de l'employé (au format "AAAA-MM-JJ")
+        demandes:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: Liste des demandes liées à l'employé
+        numero:
+          type: string
+          description: Numéro de téléphone de l'employé
+
+    Employe:
+      allOf:
+        - $ref: '#/components/schemas/EmployeCreate'
+        - type: object
+          properties:
+            _id:
+              type: object
+              properties:
+                $oid:
+                  type: string
+
+    DemandeCreate:
+      type: object
+      properties:
+        nom:
+          type: string
+          description: Nom de la demande
+        ville:
+          type: string
+          description: Ville liée à la demande
+        employe_id:
+          type: string
+          description: ID de l'employé associé (le cas échéant)
+        projet_id:
+          type: string
+          description: ID du projet associé (le cas échéant)
+
+    Demande:
+      allOf:
+        - $ref: '#/components/schemas/DemandeCreate'
+        - type: object
+          properties:
+            _id:
+              type: object
+              properties:
+                $oid:
+                  type: string
+
