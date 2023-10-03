@@ -9,7 +9,7 @@ connexion_app = connexion.App(__name__, specification_dir='./')
 app = connexion_app.app
 
 # Configuration de MongoDB
-app.config["MONGO_URI"] = "mongodb://localhost:27017/A15"
+app.config["MONGO_URI"] = "mongodb://host.docker.internal:27017/A15"
 mongo = PyMongo(app)
 
 # Récupérer tous les employés
@@ -206,4 +206,4 @@ def delete_demande_by_nom(nom):
 
 connexion_app.add_api('api.yml')
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, host='0.0.0.0',port=5001)
